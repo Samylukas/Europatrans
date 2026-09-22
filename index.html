@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy Fleet Pro 2026</title>
+    <title>Europa Trans Pro 2026</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,7 +122,7 @@
 
 <div id="splashScreen">
     <div class="splash-logo">🚘</div>
-    <div class="splash-title">Samy Fleet Pro</div>
+    <div class="splash-title">Europa Trans Pro</div>
     <div id="splashLoading" style="display:none;">
         <div class="loader"></div>
         <p id="splashMessage" style="margin-top: 10px; font-weight: 700; color: #1e3c72; font-size: 1.1rem; text-align: center; padding: 0 20px;"></p>
@@ -132,7 +132,7 @@
 <div id="loginOverlay">
     <div class="login-card">
         <h2>تسجيل الدخول</h2><p>نظام إدارة الأسطول</p>
-        <div class="form-group"><label>اسم المستخدم:</label><select id="loginUser" style="text-align:center; font-weight: 700;"><option value="SAMY" selected>SAMY</option></select></div>
+        <div class="form-group"><label>اسم المستخدم:</label><select id="loginUser" style="text-align:center; font-weight: 700;"><option value="EUROPA" selected>EUROPA</option></select></div>
         <div class="form-group" style="margin-top:15px; margin-bottom: 25px;"><label>كلمة المرور:</label><div class="pass-wrapper"><input type="password" id="loginPass" placeholder="..." style="text-align:center; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()"><button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button></div></div>
         <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()">دخول 🚀</button>
     </div>
@@ -524,7 +524,7 @@
     setInterval(updateOnlineStatus, 3000);
 
     function hideSplashScreen() {
-        const session = localStorage.getItem('samy_logged_in_user');
+        const session = localStorage.getItem('europa_logged_in_user');
         document.getElementById('splashScreen').style.opacity = '0'; 
         setTimeout(() => { 
             document.getElementById('splashScreen').style.display = 'none'; 
@@ -604,16 +604,16 @@
         document.getElementById('tripDate').value = getCurrentLocalDateTime(); document.getElementById('finDate').value = getCurrentLocalDateTime(); document.getElementById('mntDate').value = getCurrentLocalDateTime();
         const firstDay = new Date(); firstDay.setDate(1); document.getElementById('repFrom').value = firstDay.toISOString().slice(0, 10); document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
 
-        let cached = localStorage.getItem('fleet_data_cache');
-        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('fleet_data_cache'); cached = null; } } 
-        else { usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; }
+        let cached = localStorage.getItem('europa_data_cache');
+        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('europa_data_cache'); cached = null; } } 
+        else { usersDB = [{username: "EUROPA", password: "852", role: "Admin"}]; }
         
         if (cached) { setTimeout(hideSplashScreen, 1200); forceAppSync(false); } else { document.getElementById('splashLoading').style.display = 'flex'; document.getElementById('splashMessage').innerText = "جاري التحميل..."; forceAppSync(true); }
     });
 
     function forceAppSync(isFirstLoad = false) {
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData").then(res => res.json()).then(data => {
-            if (data.status === 'success') { localStorage.setItem('fleet_data_cache', JSON.stringify(data)); loadDataToUI(data); processSyncQueue(); if(!isFirstLoad) toast('🟢 تم التحديث بنجاح!', 'success'); }
+            if (data.status === 'success') { localStorage.setItem('europa_data_cache', JSON.stringify(data)); loadDataToUI(data); processSyncQueue(); if(!isFirstLoad) toast('🟢 تم التحديث بنجاح!', 'success'); }
             if(isFirstLoad) hideSplashScreen();
         }).catch(err => { if(isFirstLoad) { document.getElementById('splashMessage').innerText = "جاري التحميل..."; setTimeout(hideSplashScreen, 2000); } });
     }
@@ -621,14 +621,14 @@
     function login() {
         const u = document.getElementById('loginUser').value.trim().toLowerCase(); const p = document.getElementById('loginPass').value.trim();
         if(!u || !p) return; const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
-        if (matchedUser || (u === 'samy' && p === '852')) { localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' })); location.reload(); } else { toast('❌ كلمة المرور غير صحيحة', 'error'); }
+        if (matchedUser || (u === 'europa' && p === '852')) { localStorage.setItem('europa_logged_in_user', JSON.stringify(matchedUser || { username: 'EUROPA', role: 'Admin' })); location.reload(); } else { toast('❌ كلمة المرور غير صحيحة', 'error'); }
     }
-    function logout() { localStorage.removeItem('samy_logged_in_user'); location.reload(); }
+    function logout() { localStorage.removeItem('europa_logged_in_user'); location.reload(); }
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
     function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
 
     function loadDataToUI(data) {
-        usersDB = data.users || [{username:"SAMY", password:"852", role:"Admin"}];
+        usersDB = data.users || [{username:"EUROPA", password:"852", role:"Admin"}];
         clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
         actualDriversDB = data.actualDrivers || []; vehiclesDB = data.vehicles || []; mntPlansDB = data.mntPlans || [];
         recentTripsDB = data.recent || []; financesDB = data.finances || []; maintenanceDB = data.maintenance || []; 
@@ -694,7 +694,7 @@
         const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, revenue: rev, fee: fee, notes: notes, actual_driver: actualDriver, vehicle_plate: vehiclePlate, driver_fee: actualDriverFee };
 
         if (editingTripId) { const idx = recentTripsDB.findIndex(t => t.id === editingTripId); if(idx > -1) recentTripsDB[idx] = tripObj; } else { recentTripsDB.push(tripObj); }
-        localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, mntPlans: mntPlansDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
+        localStorage.setItem('europa_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, mntPlans: mntPlansDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
         renderRecentTrips(); 
         addToSyncQueue({ record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, date: tDate, notes: notes, revenue: rev, driver_fee: fee, actual_driver: actualDriver, vehicle_plate: vehiclePlate, actual_driver_fee: actualDriverFee });
         clearForm(); toast(`✅ تم الحفظ (${targetId})!`, 'success');
@@ -793,11 +793,11 @@
         usersDB.push({ username: u, password: p, role: r }); addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r }); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); document.getElementById('newUsername').value = ''; document.getElementById('newUserPass').value = ''; toast('✅ تم إنشاء الحساب', 'success');
     }
     function deleteUser(idx) {
-        const u = usersDB[idx]; if(u.username.toUpperCase() === 'SAMY') return toast('❌ لا يمكن حذف الأدمن الرئيسي', 'error');
+        const u = usersDB[idx]; if(u.username.toUpperCase() === 'EUROPA') return toast('❌ لا يمكن حذف الأدمن الرئيسي', 'error');
         if(confirm(`حذف المستخدم ${u.username}?`)) { addToSyncQueue({ record_type: "delete_user", username: u.username }); usersDB.splice(idx, 1); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); toast('تم الحذف'); }
     }
     function renderUsersTable() {
-        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return; tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ حذف</button>` : 'أساسي'}</td></tr>`).join('');
+        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return; tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'EUROPA' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ حذف</button>` : 'أساسي'}</td></tr>`).join('');
     }
 
     // ==========================================
