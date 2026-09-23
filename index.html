@@ -452,7 +452,6 @@
                     <table id="reportsTable">
                         <thead></thead>
                         <tbody></tbody>
-                        <!-- الإجمالي هيتضاف هنا أوتوماتيك -->
                     </table>
                 </div>
                 
@@ -559,7 +558,7 @@
     }
 
     // ==========================================
-    // القائمة المنسدلة الذكية (محدودة بـ 3 نتائج فقط لحل مشكلة الكيبورد)
+    // القائمة المنسدلة الذكية
     // ==========================================
     function setupCustomDropdown(inpId, dataFunc, callback) {
         const inp = document.getElementById(inpId);
@@ -577,7 +576,7 @@
             let arr = [...new Set(dataFunc())].sort((a, b) => String(a).localeCompare(String(b), 'ar'));
             
             let hasItems = false;
-            let count = 0; // العداد السحري لتقليل القائمة
+            let count = 0; 
             for (let i = 0; i < arr.length; i++) {
                 if (!val || String(arr[i]).toUpperCase().includes(val.toUpperCase())) {
                     count++;
@@ -593,7 +592,7 @@
                     });
                     wrapper.appendChild(b);
 
-                    if(count >= 3) break; // عرض 3 نتائج فقط عشان الكيبورد
+                    if(count >= 3) break; 
                 }
             }
             wrapper.style.display = hasItems ? "block" : "none";
@@ -744,7 +743,6 @@
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="11">لا توجد مشاوير</td></tr>'; return; }
         
         tbody.innerHTML = recentTripsDB.map((t, i) => {
-            // تنسيق عرض مبالغ التحصيل
             let collHtml = '';
             if(parseFloat(t.coll_usd) > 0) collHtml += `<span class="collection-badge">${t.coll_usd}$</span>`;
             if(parseFloat(t.coll_eur) > 0) collHtml += `<span class="collection-badge">${t.coll_eur}€</span>`;
@@ -1075,13 +1073,49 @@
 
         if (type === 'net_profit') {
             let comm = 0, fRev = 0, fExp = 0, mExp = 0;
-            recentTripsDB.forEach(t => { const d = getCleanDay(t.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) { comm += (parseFloat(t.revenue || 0) - parseFloat(t.fee || 0) - parseFloat(t.driver_fee || 0)); } });
+            let totUSD = 0, totEUR = 0, totGBP = 0, totEGP = 0; 
+            
+            recentTripsDB.forEach(t => { 
+                const d = getCleanDay(t.date); 
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) { 
+                    comm += (parseFloat(t.revenue || 0) - parseFloat(t.fee || 0) - parseFloat(t.driver_fee || 0)); 
+                    totUSD += parseFloat(t.coll_usd || 0);
+                    totEUR += parseFloat(t.coll_eur || 0);
+                    totGBP += parseFloat(t.coll_gbp || 0);
+                    totEGP += parseFloat(t.coll_egp || 0);
+                } 
+            });
             financesDB.forEach(f => { const d = getCleanDay(f.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) { if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0); else fExp += parseFloat(f.amount || 0); } });
             maintenanceDB.forEach(m => { const d = getCleanDay(m.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0); });
 
             let totalIncome = comm + fRev; let totalExpenses = fExp + mExp; let net = totalIncome - totalExpenses;
+            
+            let collectionCard = `
+            <div style="background: #eafaf1; border: 2px solid #27ae60; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center;">
+                <h3 style="color: #27ae60; margin-bottom: 15px; font-weight: 800;">📥 إجمالي التحصيل المباشر</h3>
+                <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 120px; border: 1px solid #c8e6c9;">
+                        <span style="display: block; color: #7f8c8d; font-size: 1rem; font-weight: bold;">دولار ($)</span>
+                        <strong style="font-size: 1.6rem; color: #27ae60;">${totUSD}</strong>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 120px; border: 1px solid #c8e6c9;">
+                        <span style="display: block; color: #7f8c8d; font-size: 1rem; font-weight: bold;">يورو (€)</span>
+                        <strong style="font-size: 1.6rem; color: #27ae60;">${totEUR}</strong>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 120px; border: 1px solid #c8e6c9;">
+                        <span style="display: block; color: #7f8c8d; font-size: 1rem; font-weight: bold;">إسترليني (£)</span>
+                        <strong style="font-size: 1.6rem; color: #27ae60;">${totGBP}</strong>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 120px; border: 1px solid #c8e6c9;">
+                        <span style="display: block; color: #7f8c8d; font-size: 1rem; font-weight: bold;">مصري (EGP)</span>
+                        <strong style="font-size: 1.6rem; color: #27ae60;">${totEGP}</strong>
+                    </div>
+                </div>
+            </div>`;
+
             tableWrapper.style.display = 'none'; document.getElementById('printReportTitle').innerHTML = `🚘 تقرير صافي الربح <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`; document.getElementById('printReportTitle').style.display = 'block';
-            summaryCard.style.display = 'block'; summaryCard.innerHTML = `<div class="net-profit-card"><p style="font-size:1.1rem; margin-bottom:5px;">إجمالي الدخل (صافي عمولات المشاوير + إيرادات خارجية): <strong>${totalIncome.toFixed(2)}</strong></p><p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">إجمالي المصروفات (الصيانة + المصروفات الخارجية): <strong>${totalExpenses.toFixed(2)}</strong></p><hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;"><p style="font-size:1.3rem;">NET PROFIT / صافي الربح الحقيقي</p><h2>${net.toFixed(2)} EGP</h2></div>`;
+            summaryCard.style.display = 'block'; 
+            summaryCard.innerHTML = `<div class="net-profit-card"><p style="font-size:1.1rem; margin-bottom:5px;">إجمالي الدخل (صافي عمولات المشاوير + إيرادات خارجية): <strong>${totalIncome.toFixed(2)}</strong></p><p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">إجمالي المصروفات (الصيانة + المصروفات الخارجية): <strong>${totalExpenses.toFixed(2)}</strong></p><hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;"><p style="font-size:1.3rem;">NET PROFIT / صافي الربح الحقيقي</p><h2>${net.toFixed(2)} EGP</h2></div>` + collectionCard;
             return;
         }
 
@@ -1093,13 +1127,17 @@
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
                     const cName = String(t.client || "").trim(); const pName = String(t.driver || "").trim(); const tName = String(t.trip || t.trip_name || "").trim();
                     const aDriver = String(t.actual_driver || "").trim(); const vPlate = String(t.vehicle_plate || "").trim();
+                    
                     const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || 0); const actFee = parseFloat(t.driver_fee || 0);
+                    const usd = parseFloat(t.coll_usd || 0); const eur = parseFloat(t.coll_eur || 0); const gbp = parseFloat(t.coll_gbp || 0); const egp = parseFloat(t.coll_egp || 0);
 
-                    if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
-                    else if (type === 'driver' && pName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: fee }); } 
-                    else if (type === 'actual_driver' && aDriver.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${vPlate})`, amt: actFee }); } 
-                    else if (type === 'vehicle_plate' && vPlate.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${cName})`, amt: rev }); } 
-                    else if (type === 'trip_detailed' && tName.toLowerCase() === target) { res.push({ date: t.date, desc: `${cName} / ${pName}`, amt: rev }); }
+                    let entry = { date: t.date, desc: "", amt: 0, usd: usd, eur: eur, gbp: gbp, egp: egp };
+
+                    if (type === 'client' && cName.toLowerCase() === target) { entry.desc = tName; entry.amt = rev; res.push(entry); } 
+                    else if (type === 'driver' && pName.toLowerCase() === target) { entry.desc = tName; entry.amt = fee; res.push(entry); } 
+                    else if (type === 'actual_driver' && aDriver.toLowerCase() === target) { entry.desc = `${tName} (${vPlate})`; entry.amt = actFee; res.push(entry); } 
+                    else if (type === 'vehicle_plate' && vPlate.toLowerCase() === target) { entry.desc = `${tName} (${cName})`; entry.amt = rev; res.push(entry); } 
+                    else if (type === 'trip_detailed' && tName.toLowerCase() === target) { entry.desc = `${cName} / ${pName}`; entry.amt = rev; res.push(entry); }
                 }
             });
         }
@@ -1117,9 +1155,31 @@
             tbody.innerHTML += `<tr class="total-row"><td colspan="4">الإجمالي</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
             document.getElementById('printReportTitle').innerHTML = `🚘 تقرير الصيانة <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
-            thead.innerHTML = `<tr><th>#</th><th>التاريخ</th><th>البيان / المشوار</th><th>المبلغ</th></tr>`;
-            res.forEach((r, i) => { tot += parseFloat(r.amt); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3">الإجمالي</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            let totUSD = 0, totEUR = 0, totGBP = 0, totEGP = 0;
+            thead.innerHTML = `<tr><th>#</th><th>التاريخ</th><th>البيان / المشوار</th><th>المبلغ</th><th>التحصيل</th></tr>`;
+            
+            res.forEach((r, i) => { 
+                tot += parseFloat(r.amt); 
+                totUSD += r.usd; totEUR += r.eur; totGBP += r.gbp; totEGP += r.egp;
+                
+                let collHtml = '';
+                if(r.usd > 0) collHtml += `<span class="collection-badge">${r.usd}$</span>`;
+                if(r.eur > 0) collHtml += `<span class="collection-badge">${r.eur}€</span>`;
+                if(r.gbp > 0) collHtml += `<span class="collection-badge">${r.gbp}£</span>`;
+                if(r.egp > 0) collHtml += `<span class="collection-badge">${r.egp} ج</span>`;
+                if(collHtml === '') collHtml = '-';
+
+                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td><td>${collHtml}</td></tr>`; 
+            });
+            
+            let totCollHtml = '';
+            if(totUSD > 0) totCollHtml += `<span class="collection-badge">${totUSD}$</span>`;
+            if(totEUR > 0) totCollHtml += `<span class="collection-badge">${totEUR}€</span>`;
+            if(totGBP > 0) totCollHtml += `<span class="collection-badge">${totGBP}£</span>`;
+            if(totEGP > 0) totCollHtml += `<span class="collection-badge">${totEGP} ج</span>`;
+            if(totCollHtml === '') totCollHtml = '-';
+
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3">الإجمالي</td><td style="direction:ltr;">${tot.toFixed(2)}</td><td>${totCollHtml}</td></tr>`; 
             document.getElementById('printReportTitle').innerHTML = `🚘 التقارير: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
         document.getElementById('printReportTitle').style.display = 'block';
